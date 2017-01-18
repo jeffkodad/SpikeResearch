@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DontPanic.ServiceHelpers, Version=9.0.0.1, Culture=neutral, PublicKeyToken=f41ffc97e0c64c1b, processorArchitecture=MSIL">
+      <HintPath>..\packages\DPLServiceHelpers.9.0.0.1\lib\DontPanic.ServiceHelpers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -48,6 +52,25 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SpikeResearch.Contracts\SpikeResearch.Contracts.csproj">
+      <Project>{3a7e47db-3fe3-4678-b191-6da6ed81d5c9}</Project>
+      <Name>SpikeResearch.Contracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SpikeResearch.DataContracts\SpikeResearch.DataContracts.csproj">
+      <Project>{4fda2a1b-0519-4ae2-95c3-7d2b55a06a69}</Project>
+      <Name>SpikeResearch.DataContracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SpikeResearch.Managers\SpikeResearch.Managers.csproj">
+      <Project>{96ab1792-c97d-49ec-8e6d-842dd7db56f3}</Project>
+      <Name>SpikeResearch.Managers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SpikeResearch.Utilities\SpikeResearch.Utilities.csproj">
+      <Project>{6693b8fd-2aaf-4513-8aba-e44a491737ad}</Project>
+      <Name>SpikeResearch.Utilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

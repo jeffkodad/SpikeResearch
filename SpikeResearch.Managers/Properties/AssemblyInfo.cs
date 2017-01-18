@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SpikeResearch.GitHubManager")]
+[assembly: AssemblyTitle("SpikeResearch.Managers")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SpikeResearch.GitHubManager")]
+[assembly: AssemblyProduct("SpikeResearch.Managers")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("81a73e85-24b9-4ac5-b49e-c77cb87e722a")]
+[assembly: Guid("96ab1792-c97d-49ec-8e6d-842dd7db56f3")]
 
 // Version information for an assembly consists of the following four values:
 //
