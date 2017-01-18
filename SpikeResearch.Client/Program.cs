@@ -8,29 +8,19 @@ using SpikeResearch.Utilities;
 
 namespace SpikeResearch.Client
 {
-    public class Program
+    public class Program : ServiceBase
     {
         #region Fields
-
-        private IGitHubManager _gitHubManager;
 
         #endregion
 
         #region Properties
-
-        public IGitHubManager GitHubManager
-        {
-            get { return _gitHubManager ?? (_gitHubManager = ClassFactory.CreateClass<IGitHubManager>()); }
-            set { _gitHubManager = value; }
-        }
 
         #endregion
 
         #region Methods
 
 
-
-        #endregion
         static void Main(string[] args)
         {
             var program = new Program();
@@ -38,14 +28,56 @@ namespace SpikeResearch.Client
 
         public Program()
         {
-            Console.WriteLine("Spike Research, press enter to continue.");
-            Console.ReadLine();
+            PrintHeading("Spike Research");
 
-            
+            Console.WriteLine("1. GitHub");
+            Console.WriteLine("2. Google Docs");
+            Console.WriteLine("3: Exit");
 
-            Console.WriteLine("Press enter to exit.");
-            Console.ReadLine();
+            switch (GetNumberInput(3))
+            {
+                case "1":
+                    GitHub();
+                    break;
+                case "2":
+                    GoogleDocs();
+                    break;
+                case "3":
+                    Environment.Exit(0);
+                    break;
+                default:
+
+                    break;
+            }
+
+            ExitApp();
         }
 
+        public void GitHub()
+        {
+            Console.WriteLine("Now Working on GitHub");
+            var gitHubClient = new GitHubClient();
+        }
+
+        public void GoogleDocs()
+        {
+            
+        }
+
+        public void ExitApp()
+        {
+            Console.WriteLine("Press any key to start over.");
+            Console.ReadLine();
+            Console.Clear();
+            var program = new Program();
+        }
+
+        #region HelperMethods
+
+        
+
+        #endregion
+
+        #endregion
     }
 }

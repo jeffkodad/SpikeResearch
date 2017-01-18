@@ -47,14 +47,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleHelpers.cs" />
+    <Compile Include="GitHubClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServiceBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SpikeResearch.Accessors\SpikeResearch.Accessors.csproj">
+      <Project>{6c93922c-5e42-43c7-9ea1-6848d80ae954}</Project>
+      <Name>SpikeResearch.Accessors</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SpikeResearch.Contracts\SpikeResearch.Contracts.csproj">
       <Project>{3a7e47db-3fe3-4678-b191-6da6ed81d5c9}</Project>
       <Name>SpikeResearch.Contracts</Name>

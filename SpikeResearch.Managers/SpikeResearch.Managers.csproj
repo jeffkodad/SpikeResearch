@@ -52,9 +52,21 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SpikeResearch.Accessors\SpikeResearch.Accessors.csproj">
+      <Project>{6c93922c-5e42-43c7-9ea1-6848d80ae954}</Project>
+      <Name>SpikeResearch.Accessors</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SpikeResearch.Contracts\SpikeResearch.Contracts.csproj">
       <Project>{3A7E47DB-3FE3-4678-B191-6DA6ED81D5C9}</Project>
       <Name>SpikeResearch.Contracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SpikeResearch.DataContracts\SpikeResearch.DataContracts.csproj">
+      <Project>{4FDA2A1B-0519-4AE2-95C3-7D2B55A06A69}</Project>
+      <Name>SpikeResearch.DataContracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SpikeResearch.Utilities\SpikeResearch.Utilities.csproj">
+      <Project>{6693b8fd-2aaf-4513-8aba-e44a491737ad}</Project>
+      <Name>SpikeResearch.Utilities</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
