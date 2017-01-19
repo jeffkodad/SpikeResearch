@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using SpikeResearch.Contracts.Managers;
+using SpikeResearch.DataContracts;
 using SpikeResearch.Utilities;
+using System.Runtime.Remoting.Contexts;
 
 namespace SpikeResearch.Client
 {
@@ -14,6 +17,24 @@ namespace SpikeResearch.Client
         #region Fields
 
         private IGitHubManager _gitHubManager;
+
+        private GitHubUser _currentUser;
+
+        private GitHubRepo _currtRepo;
+
+        private GitHubOrganization _currentOrganization;
+
+        private List<GitHubUser> UserList;
+
+        private List<GitHubRepo> RepoList;
+
+        private List<OptionItem> _gitHubOptions;
+
+        private List<OptionItem> _userOptions;
+
+        private List<OptionItem> _repoOptions;
+
+        private List<OptionItem> _organizationOptions;
 
         #endregion
 
@@ -25,47 +46,92 @@ namespace SpikeResearch.Client
             set { _gitHubManager = value; }
         }
 
+        public GitHubUser CurrentUser
+        {
+            get { return _currentUser; }
+            set { _currentUser = value; }
+        }
+
+        public GitHubRepo CurrentRepo
+        {
+            get { return _currtRepo; }
+            set { _currtRepo = value; }
+        }
+
+        public GitHubOrganization CurrentOrganization
+        {
+            get { return _currentOrganization; }
+            set { _currentOrganization = value; }
+        }
+
+        public List<OptionItem> GitHubOptions
+        {
+            get { return _gitHubOptions ?? (_gitHubOptions = PopulateGitHubOptions()); }
+            set { _gitHubOptions = value; }
+        }
+
+        public List<OptionItem> UserOptions
+        {
+            get { return _userOptions ?? (_userOptions = PopulateUserOptions()); }
+            set { _userOptions = value; }
+        }
+
+        public List<OptionItem> RepoOptions
+        {
+            get { return _repoOptions ?? (_repoOptions = PopulateRepoOptions()); }
+            set { _repoOptions = value; }
+        }
+
+        public List<OptionItem> OrganizationOptions
+        {
+            get { return _organizationOptions ?? (_organizationOptions = PopulateOrganizationOptions()); }
+            set { _organizationOptions = value; }
+        }
+
         #endregion
 
         #region Methods
 
         public GitHubClient()
         {
-            
-            GitHubInit();
+            DisplayGitHubOptions();
         }
 
-        public void GitHubInit()
+        #region DisplayOptions
+
+        public void DisplayGitHubOptions()
         {
-            Console.Clear();
-            PrintHeading("GitHub Client");
-            Console.WriteLine("Select an option");
-            Console.WriteLine("1. Find User");
-            Console.WriteLine("2. Find a Repo");
-            Console.WriteLine("3. Restart App");
-            Console.WriteLine("4. Exit");
-
-            switch (GetNumberInput(4))
-            {
-                case "1":
-                    FindMember();
-                    break;
-                case "2":
-                    FindRepo();
-                    break;
-                case "3":
-                    ResetApp();
-                    break;
-                case "4":
-                    Environment.Exit(0);
-                    break;
-            }
-
-            GitHubManager.Init();
-
+            DisplayOptionItemList<string>("GitHub Client", GitHubOptions, null);
+            var input = GetNumberInput(GitHubOptions.Count);
+            GitHubOptions.First(x => x.Index == Convert.ToInt32(input)).Action.Invoke();
         }
 
-        public void FindMember()
+        public void DisplayUserOptions()
+        {
+            DisplayOptionItemList<GitHubUser>("User Options", UserOptions, CurrentUser);
+            var input = GetNumberInput(GitHubOptions.Count);
+            UserOptions.First(x => x.Index == Convert.ToInt32(input)).Action.Invoke();
+        }
+
+        public void DisplayRepoOptions()
+        {
+            DisplayOptionItemList<GitHubRepo>("Repo Options", RepoOptions, CurrentRepo);
+            var input = GetNumberInput(GitHubOptions.Count);
+            RepoOptions.First(x => x.Index == Convert.ToInt32(input)).Action.Invoke();
+        }
+
+        public void DisplayOrganizationOptions()
+        {
+            DisplayOptionItemList<GitHubOrganization>("Organization Options", OrganizationOptions, CurrentOrganization);
+            var input = GetNumberInput(GitHubOptions.Count);
+            OrganizationOptions.First(x => x.Index == Convert.ToInt32(input)).Action.Invoke();
+        }
+
+        #endregion
+
+        #region GitHubOptions
+
+        public void FindUser()
         {
             Console.WriteLine("Enter a username to search");
             var input = Console.ReadLine();
@@ -74,44 +140,195 @@ namespace SpikeResearch.Client
 
             if (!string.IsNullOrEmpty(gitHubUser.Id))
             {
-                DisplayAllObjectProperties(gitHubUser);
+                CurrentUser = gitHubUser;
+                DisplayMessageAndWait("User found, press any key to continue", new Action(DisplayUserOptions));
             }
             else
             {
-                Console.WriteLine("No User Found");
+                DisplayMessageAndWait("No user found, press any key to reset", new Action(DisplayGitHubOptions));
             }
-
-            Console.WriteLine("Press Any Key To Start Over");
-            WaitForAnyKey();
-            GitHubInit();
         }
+
+        public void FindOrganization()
+        {
+            Console.WriteLine("Enter an organization name to search");
+            var input = Console.ReadLine();
+
+            var org = GitHubManager.GetOrganizationByName(input);
+
+            if (!string.IsNullOrEmpty(org.Id))
+            {
+                CurrentOrganization = org;
+                DisplayMessageAndWait("Organization found, press any key to continue", new Action(DisplayOrganizationOptions));
+            }
+        }
+
+        #endregion
+
+        #region UserOptions
 
         public void FindRepo()
         {
-            Console.WriteLine("Enter the username of the Repo OWNER");
-            var userName = Console.ReadLine();
-            Console.WriteLine();
-
             Console.WriteLine("Enter the name of the Repo");
             var repoName = Console.ReadLine();
 
-            var repo = GitHubManager.GetRepo(userName, repoName);
+            var repo = GitHubManager.GetRepo(CurrentUser.UserName, repoName);
 
             if (!string.IsNullOrEmpty(repo.Id))
             {
-                DisplayAllObjectProperties(repo);
+                CurrentRepo = repo;
+                DisplayRepoOptions();
             }
             else
             {
-                Console.WriteLine("No Repo Found");
+                DisplayMessageAndWait("No Repo Found, press any key to continue", new Action(DisplayUserOptions));
             }
-
-            Console.WriteLine("Press Any Key To Start Over");
-            WaitForAnyKey();
-            GitHubInit();
         }
 
+        public void ListReposForUser()
+        {
+            RepoList = GitHubManager.GetReposByUserName(CurrentUser.UserName);
+            Console.Clear();
+            PrintHeading($"Repo list for {CurrentUser.UserName}");
 
+            if (RepoList.Count != 0)
+            {
+                foreach (var repo in RepoList)
+                {
+                    Console.WriteLine($"ID: {repo.Id}  Name: {repo.Name}");
+                }
+                Console.WriteLine("Enter a repo ID for options");
+                var selectedId = Console.ReadLine();
+                if (RepoList.Any(x => x.Id == selectedId))
+                {
+                    CurrentRepo = RepoList.FirstOrDefault(x => x.Id == selectedId);
+                    DisplayRepoOptions();
+                }
+            }
+            else
+            {
+                DisplayMessageAndWait("No repos found, press any key to continue", new Action(DisplayUserOptions));
+            }
+        }
+
+        #endregion
+
+        #region RepoOptions
+
+        public void ListRepoUsers()
+        {
+
+        }
+
+        public void ListRepoBranches()
+        {
+
+        }
+
+        #endregion
+
+        #region OrganizationOptions
+
+        public void ListOrganizationRepos()
+        {
+            RepoList = GitHubManager.GetReposByOrganization(CurrentOrganization.Login);
+            Console.Clear();
+            PrintHeading($"Repo list for {CurrentOrganization.Name}");
+
+            if (RepoList.Count != 0)
+            {
+                foreach (var repo in RepoList)
+                {
+                    Console.WriteLine($"ID: {repo.Id}  Name: {repo.Name}");
+                }
+                Console.WriteLine("Enter a repo ID for options");
+                var selectedId = Console.ReadLine();
+                if (RepoList.Any(x => x.Id == selectedId))
+                {
+                    CurrentRepo = RepoList.FirstOrDefault(x => x.Id == selectedId);
+                    DisplayRepoOptions();
+                }
+            }
+            else
+            {
+                DisplayMessageAndWait("No repos found, press any key to continue", new Action(DisplayOrganizationOptions));
+            }
+        }
+
+        #endregion
+
+        #endregion
+
+        #region HelperMethods
+
+        public List<OptionItem> PopulateGitHubOptions()
+        {
+            var list = new List<OptionItem>();
+            list.Add(new OptionItem
+            {
+                Index = 1,
+                Description = "Find User",
+                Action = new Action(FindUser)
+            });
+            list.Add(new OptionItem
+            {
+                Index = 2,
+                Description = "Find Organization",
+                Action = new Action(FindOrganization)
+            });
+            list.Add(GetResetItem(3));
+            list.Add(GetExitOption(4));
+            return list;
+        }
+
+        public List<OptionItem> PopulateUserOptions()
+        {
+            var list = new List<OptionItem>();
+            list.Add(new OptionItem
+            {
+                Index = 1,
+                Description = "List Repos",
+                Action = new Action(ListReposForUser)
+            });
+            list.Add(new OptionItem
+            {
+                Index = 2,
+                Description = "Search for Repo",
+                Action = new Action(FindRepo)
+            });
+            list.Add(GetResetItem(3));
+            list.Add(GetExitOption(4));
+            return list;
+        }
+
+        public List<OptionItem> PopulateRepoOptions()
+        {
+            var list = new List<OptionItem>();
+            list.Add(new OptionItem
+            {
+                Index = 1,
+                Description = "List Repo Users",
+                Action = new Action(ListRepoUsers)
+            });
+            list.Add(new OptionItem
+            {
+                Index = 2,
+                Description = "List Branches",
+                Action = new Action(ListRepoBranches)
+            });
+            list.Add(GetResetItem(3));
+            list.Add(GetExitOption(4));
+            return list;
+        }
+
+        public List<OptionItem> PopulateOrganizationOptions()
+        {
+            var list = new List<OptionItem>();
+            list.Add(new OptionItem(1, "List Repos", new Action(ListOrganizationRepos)));
+            list.Add(GetResetItem(3));
+            list.Add(GetExitOption(4));
+            return list;
+        }
 
         #endregion
     }

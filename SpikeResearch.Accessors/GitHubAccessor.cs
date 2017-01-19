@@ -65,6 +65,26 @@ namespace SpikeResearch.Accessors
             return ProcessRequest<GitHubRepo>(request);
         }
 
+        public List<GitHubRepo> GetReposByUserName(string userName)
+        {
+            var paramaters = new Dictionary<string, string>();
+            paramaters["type"] = "all";
+            var request = CreateNewRequest(HttpMethod.Get, $"users/{userName}/repos", paramaters);
+            return ProcessRequest<List<GitHubRepo>>(request);
+        }
+
+        public List<GitHubRepo> GetReposByOrganization(string organizationName)
+        {
+            var request = CreateNewRequest(HttpMethod.Get, $"orgs/{organizationName}/repos", new Dictionary<string, string>());
+            return ProcessRequest<List<GitHubRepo>>(request);
+        }
+
+        public GitHubOrganization GetOrganizationByName(string organizationName)
+        {
+            var request = CreateNewRequest(HttpMethod.Get, $"orgs/{organizationName}", new Dictionary<string, string>());
+            return ProcessRequest<GitHubOrganization>(request);
+        }
+
         #region HelperMethods
 
         private HttpClient CreateNewClient()

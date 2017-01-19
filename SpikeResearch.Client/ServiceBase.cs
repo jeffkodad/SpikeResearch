@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SpikeResearch.DataContracts;
 
 namespace SpikeResearch.Client
 {
@@ -16,8 +17,6 @@ namespace SpikeResearch.Client
         #endregion
 
         #region Properties
-
-
 
         #endregion
 
@@ -62,7 +61,7 @@ namespace SpikeResearch.Client
                 {
                     double val = 0;
                     bool _x = double.TryParse(key.KeyChar.ToString(), out val);
-                    if (_x && val <= maxNumber)
+                    if (_x && val <= maxNumber && val != 0)
                     {
                         _val += key.KeyChar;
                         Console.Write(key.KeyChar);
@@ -97,6 +96,44 @@ namespace SpikeResearch.Client
             {
                 Console.WriteLine($"{descriptor.Name}: {descriptor.GetValue(obj)}");
             }
+        }
+
+        public void DisplayOptionItemList<T>(string heading, List<OptionItem> list, T displayObject)
+        {
+            Console.Clear();
+            PrintHeading(heading);
+            if (displayObject != null)
+            {
+                DisplayAllObjectProperties(displayObject);
+                PrintSectionBreak();
+            }
+            Console.WriteLine("Select an Option");
+            foreach (var item in list.OrderBy(x => x.Index))
+            {
+                Console.WriteLine($"{item.Index}. {item.Description}");
+            }
+        }
+
+        public void DisplayMessageAndWait(string message, Action action)
+        {
+            Console.WriteLine(message);
+            WaitForAnyKey();
+            action.Invoke();
+        }
+
+        public void CloseAppNow()
+        {
+            Environment.Exit(0);
+        }
+
+        public OptionItem GetResetItem(int index)
+        {
+            return new OptionItem(index, "Reset", new Action(ResetApp));
+        }
+
+        public OptionItem GetExitOption(int index)
+        {
+            return new OptionItem(index, "Exit", new Action(CloseAppNow));
         }
 
         #endregion

@@ -49,8 +49,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GitHubIssue.cs" />
+    <Compile Include="GitHubOrganization.cs" />
     <Compile Include="GitHubRepo.cs" />
     <Compile Include="GitHubUser.cs" />
+    <Compile Include="OptionItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
