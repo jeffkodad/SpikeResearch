@@ -16,5 +16,7 @@ namespace SpikeResearch.Contracts.Managers
         List<GitHubRepo> GetReposByOrganization(string organizationName);
 
         GitHubOrganization GetOrganizationByName(string organizationName);
+
+        List<Dictionary<string, object>> OneTimeCall(string path, Dictionary<string, string> paramaters);
     }
 }

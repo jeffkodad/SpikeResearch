@@ -45,8 +45,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Accessors\IGitHubAccessor.cs" />
+    <Compile Include="Accessors\IGitHubIssueAccessor.cs" />
+    <Compile Include="Accessors\IGitHubUserAccessor.cs" />
     <Compile Include="Accessors\IGoogleDocsAccessor.cs" />
+    <Compile Include="Managers\IGitHubIssueManager.cs" />
     <Compile Include="Managers\IGitHubManager.cs" />
+    <Compile Include="Managers\IGitHubUserManager.cs" />
     <Compile Include="Managers\IGoogleDocsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -7,10 +7,14 @@ using DontPanic.Helpers;
 using Newtonsoft.Json;
 using SpikeResearch.Contracts.Accessors;
 using SpikeResearch.DataContracts;
+using System.Collections;
 
 namespace SpikeResearch.Accessors
 {
-    public class GitHubAccessor :  IGitHubAccessor
+    public class GitHubAccessor :  
+        IGitHubAccessor,
+        IGitHubUserAccessor,
+        IGitHubIssueAccessor 
     {
         #region Fields
 
@@ -29,6 +33,31 @@ namespace SpikeResearch.Accessors
         #endregion
 
         #region Methods
+
+        #region UserAccessorMethods
+
+        public bool AuthenticateUser(string userName, string password)
+        {
+            return true;
+        }
+
+        #endregion
+
+        #region IssueAccessorMethods
+
+        public GitHubIssue GetIssue(string userName, string repoName, string issueId)
+        {
+            var request = CreateNewRequest(HttpMethod.Get, $"repos/{userName}/{repoName}/issues/{issueId}", new Dictionary<string, string>());
+            return ProcessRequest<GitHubIssue>(request);
+        }
+
+        public List<GitHubIssue> ListRepoIssues(string userName, string repoName)
+        {
+            var request = CreateNewRequest(HttpMethod.Get, $"repos/{userName}/{repoName}/issues", new Dictionary<string, string>());
+            return ProcessRequest<List<GitHubIssue>>(request);
+        }
+
+        #endregion
 
         public void Init()
         {
@@ -85,6 +114,27 @@ namespace SpikeResearch.Accessors
             return ProcessRequest<GitHubOrganization>(request);
         }
 
+        public List<Dictionary<string, object>> OneTimeCall(string path, Dictionary<string, string> paramaters)
+        {
+            var request = CreateNewRequest(HttpMethod.Get, path, paramaters);
+
+            var resp = GitHubClient.SendAsync(request).Result;
+            var content = resp.Content.ReadAsStringAsync().Result;
+
+            var list = new List<Dictionary<string, object>>();
+
+            if (!content.StartsWith("["))
+            {
+                list.Add(JsonConvert.DeserializeObject<Dictionary<string, object>>(content));
+            }
+            else
+            {
+                list = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(content);
+            }
+
+            return list;
+        }
+
         #region HelperMethods
 
         private HttpClient CreateNewClient()
@@ -124,6 +174,8 @@ namespace SpikeResearch.Accessors
 
             return JsonConvert.DeserializeObject<T>(content);
         }
+
+
 
         #endregion
 

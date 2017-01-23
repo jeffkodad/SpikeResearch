@@ -9,7 +9,10 @@ namespace SpikeResearch.DataContracts
 {
     public class GitHubIssue
     {
-        [JsonProperty("Title")]
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("title")]
         public string Title { get; set; }
 
         [JsonProperty("body")]

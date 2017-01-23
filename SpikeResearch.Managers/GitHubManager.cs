@@ -7,11 +7,18 @@ using System.Collections.Generic;
 
 namespace SpikeResearch.Managers
 {
-    public class GitHubManager : IGitHubManager
+    public class GitHubManager : 
+        IGitHubManager,
+        IGitHubUserManager,
+        IGitHubIssueManager
     {
         #region Fields
 
         private IGitHubAccessor _gitHubAccessor;
+
+        private IGitHubUserAccessor _gitHubUserAccessor;
+
+        private IGitHubIssueAccessor _gitHubIssueAccessor;
 
         #endregion
 
@@ -23,9 +30,43 @@ namespace SpikeResearch.Managers
             set { _gitHubAccessor = value; }
         }
 
+        public IGitHubUserAccessor GitHubUserAccessor
+        {
+            get { return _gitHubUserAccessor ?? (_gitHubUserAccessor = ClassFactory.CreateClass<IGitHubUserAccessor>()); }
+            set { _gitHubUserAccessor = value; }
+        }
+
+        public IGitHubIssueAccessor GitHubIssueAccessor
+        {
+            get { return _gitHubIssueAccessor ?? (_gitHubIssueAccessor = ClassFactory.CreateClass<IGitHubIssueAccessor>()); }
+            set { _gitHubIssueAccessor = value; }
+        }
+
         #endregion
 
         #region Methods
+
+        #region UserMethods
+
+        public bool AuthenticateUser(string userName, string password)
+        {
+            return GitHubUserAccessor.AuthenticateUser(userName, password);
+        }
+
+        #endregion
+
+        #region IssueMethods
+        public GitHubIssue GetIssue(string userName, string repoName, string issueId)
+        {
+            return GitHubIssueAccessor.GetIssue(userName, repoName, issueId);
+        }
+
+        public List<GitHubIssue> ListRepoIssues(string userName, string repoName)
+        {
+            return GitHubIssueAccessor.ListRepoIssues(userName, repoName);
+        }
+
+        #endregion
         public void Init()
         {
             GitHubAccessor.Init();
@@ -55,6 +96,13 @@ namespace SpikeResearch.Managers
         {
             return GitHubAccessor.GetOrganizationByName(organizationName);
         }
+
+        public List<Dictionary<string, object>> OneTimeCall(string path, Dictionary<string, string> paramaters)
+        {
+            return GitHubAccessor.OneTimeCall(path, paramaters);
+        }
+
+
 
         #endregion
     }

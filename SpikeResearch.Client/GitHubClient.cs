@@ -9,6 +9,7 @@ using SpikeResearch.Contracts.Managers;
 using SpikeResearch.DataContracts;
 using SpikeResearch.Utilities;
 using System.Runtime.Remoting.Contexts;
+using Newtonsoft.Json;
 
 namespace SpikeResearch.Client
 {
@@ -18,9 +19,15 @@ namespace SpikeResearch.Client
 
         private IGitHubManager _gitHubManager;
 
+        private IGitHubUserManager _gitHubUserManager;
+
+        private IGitHubIssueManager _gitHubIssueManager;
+
         private GitHubUser _currentUser;
 
         private GitHubRepo _currtRepo;
+
+        private GitHubIssue _currentIssue;
 
         private GitHubOrganization _currentOrganization;
 
@@ -36,6 +43,12 @@ namespace SpikeResearch.Client
 
         private List<OptionItem> _organizationOptions;
 
+        private List<OptionItem> _issueOptions;
+
+        private Dictionary<string, string> EmptyParams = new Dictionary<string, string>();
+
+        private bool _authenticated = false;
+
         #endregion
 
         #region Properties
@@ -44,6 +57,18 @@ namespace SpikeResearch.Client
         {
             get { return _gitHubManager ?? (_gitHubManager = ClassFactory.CreateClass<IGitHubManager>()); }
             set { _gitHubManager = value; }
+        }
+
+        public IGitHubUserManager GitHubUserManager
+        {
+            get { return _gitHubUserManager ?? (_gitHubUserManager = ClassFactory.CreateClass<IGitHubUserManager>()); }
+            set { _gitHubUserManager = value; }
+        }
+
+        public IGitHubIssueManager GitHubIssueManager
+        {
+            get { return _gitHubIssueManager ?? (_gitHubIssueManager = ClassFactory.CreateClass<IGitHubIssueManager>()); }
+            set { _gitHubIssueManager = value; }
         }
 
         public GitHubUser CurrentUser
@@ -56,6 +81,12 @@ namespace SpikeResearch.Client
         {
             get { return _currtRepo; }
             set { _currtRepo = value; }
+        }
+
+        public GitHubIssue CurrentIssue
+        {
+            get { return _currentIssue; }
+            set { _currentIssue = value; }
         }
 
         public GitHubOrganization CurrentOrganization
@@ -88,13 +119,33 @@ namespace SpikeResearch.Client
             set { _organizationOptions = value; }
         }
 
+        public List<OptionItem> IssueOptions
+        {
+            get { return _issueOptions ?? (_issueOptions = PopulateIssueOptions()); }
+            set { _issueOptions = value; }
+        }
+
+        public bool Authenticated
+        {
+            get { return _authenticated; }
+            set { _authenticated = value; }
+        }
+
         #endregion
 
         #region Methods
 
         public GitHubClient()
         {
-            DisplayGitHubOptions();
+            try
+            {
+                DisplayGitHubOptions();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error: {e.Message}");
+                DisplayMessageAndWait("Press Any Key to Restart", new Action(DisplayGitHubOptions));
+            }
         }
 
         #region DisplayOptions
@@ -124,6 +175,13 @@ namespace SpikeResearch.Client
         {
             DisplayOptionItemList<GitHubOrganization>("Organization Options", OrganizationOptions, CurrentOrganization);
             var input = GetNumberInput(GitHubOptions.Count);
+            OrganizationOptions.First(x => x.Index == Convert.ToInt32(input)).Action.Invoke();
+        }
+
+        public void DisplayIssueOptions()
+        {
+            DisplayOptionItemList<GitHubIssue>("Issue Options", IssueOptions, CurrentIssue);
+            var input = GetNumberInput(IssueOptions.Count);
             OrganizationOptions.First(x => x.Index == Convert.ToInt32(input)).Action.Invoke();
         }
 
@@ -161,6 +219,68 @@ namespace SpikeResearch.Client
                 CurrentOrganization = org;
                 DisplayMessageAndWait("Organization found, press any key to continue", new Action(DisplayOrganizationOptions));
             }
+        }
+
+        public void CreateCustomCall()
+        {
+            PrintHeading("Custom GitHub Call");
+
+            Console.WriteLine("Enter a path for the gitHub call");
+            var path = Console.ReadLine();
+            Console.WriteLine();
+            Console.WriteLine("Enter your paramaters {\"Name\":\"Value\",\"Name\":\"Value\"}, press escape when finished");
+            var paramInput = Console.ReadLine();
+            var paramaters = JsonConvert.DeserializeObject<Dictionary<string, string>>(paramInput);
+
+            Console.Clear();
+            PrintHeading("Custom Call Results");
+            Console.WriteLine($"Path: {path}");
+            if (!string.IsNullOrEmpty(paramInput) && paramaters.Count > 0)
+            {
+                Console.WriteLine("Paramaters:");
+                foreach (var item in paramaters)
+                {
+                    Console.WriteLine($"{item.Key}=>{item.Value}");
+                }
+            }
+            PrintHeading("Results");
+
+            var text = GitHubManager.OneTimeCall(path, EmptyParams);
+
+            foreach (var item in text)
+            {
+                PrintSectionBreak();
+                foreach (var obj in item)
+                {
+                    Console.WriteLine($"{obj.Key}: {obj.Value}");
+                }
+            }
+
+            DisplayMessageAndWait("Press any key to go back", DisplayGitHubOptions);
+        }
+
+        public void AuthenticateUser()
+        {
+            PrintHeading("User Authentication");
+            Console.WriteLine("Enter username");
+            var userName = Console.ReadLine();
+            Console.WriteLine("\nEnter Password");
+            var pass = "";
+            ConsoleKeyInfo key;
+            do
+            {
+                key = Console.ReadKey(true);
+
+                if (key.Key != ConsoleKey.Enter && key.Key != ConsoleKey.Backspace)
+                {
+                    pass += key.KeyChar;
+                }
+            }
+            // Stops Receving Keys Once Enter is Pressed
+            while (key.Key != ConsoleKey.Enter);
+
+            var auth = GitHubUserManager.AuthenticateUser(userName, pass);
+
         }
 
         #endregion
@@ -225,6 +345,32 @@ namespace SpikeResearch.Client
 
         }
 
+        public void ListRepoIssues()
+        {
+            var issueList = GitHubIssueManager.ListRepoIssues(CurrentUser.UserName, CurrentRepo.Name);
+            Console.Clear();
+            PrintHeading($"Issue list for {CurrentRepo.Name}");
+
+            if (issueList.Count != 0)
+            {
+                foreach (var issue in issueList)
+                {
+                    Console.WriteLine($"ID: {issue.Id}  Name: {issue.Title}");
+                }
+                Console.WriteLine("Enter an issue ID for options");
+                var selectedId = Console.ReadLine();
+                if (issueList.Any(x => x.Id == selectedId))
+                {
+                    CurrentIssue = issueList.FirstOrDefault(x => x.Id == selectedId);
+                    DisplayIssueOptions();
+                }
+            }
+            else
+            {
+                DisplayMessageAndWait("No issues found, press any key to continue", new Action(DisplayRepoOptions));
+            }
+        }
+
         #endregion
 
         #region OrganizationOptions
@@ -257,77 +403,79 @@ namespace SpikeResearch.Client
 
         #endregion
 
+        #region IssueOptions
+
+        public void EditIssue()
+        {
+            
+        }
+
+        public void AddIssueComment()
+        {
+            
+        }
+
+        #endregion
+
         #endregion
 
         #region HelperMethods
 
         public List<OptionItem> PopulateGitHubOptions()
         {
-            var list = new List<OptionItem>();
-            list.Add(new OptionItem
+            return new List<OptionItem>
             {
-                Index = 1,
-                Description = "Find User",
-                Action = new Action(FindUser)
-            });
-            list.Add(new OptionItem
-            {
-                Index = 2,
-                Description = "Find Organization",
-                Action = new Action(FindOrganization)
-            });
-            list.Add(GetResetItem(3));
-            list.Add(GetExitOption(4));
-            return list;
+                new OptionItem(1, "Find User", new Action(FindUser)),
+                new OptionItem(2, "Find Organization", new Action(FindOrganization)),
+                new OptionItem(3, "Custom Call", new Action(CreateCustomCall)),
+                new OptionItem(4, "Authenticate", new Action(AuthenticateUser)),
+                GetResetItem(4),
+                GetExitOption(5)
+            };
         }
 
         public List<OptionItem> PopulateUserOptions()
         {
-            var list = new List<OptionItem>();
-            list.Add(new OptionItem
+            return new List<OptionItem>
             {
-                Index = 1,
-                Description = "List Repos",
-                Action = new Action(ListReposForUser)
-            });
-            list.Add(new OptionItem
-            {
-                Index = 2,
-                Description = "Search for Repo",
-                Action = new Action(FindRepo)
-            });
-            list.Add(GetResetItem(3));
-            list.Add(GetExitOption(4));
-            return list;
+                new OptionItem(1, "List Repos", new Action(ListReposForUser)),
+                new OptionItem(2, "Search for Repo", new Action(FindRepo)),
+                GetResetItem(3),
+                GetExitOption(4)
+            };
         }
 
         public List<OptionItem> PopulateRepoOptions()
         {
-            var list = new List<OptionItem>();
-            list.Add(new OptionItem
+            return new List<OptionItem>
             {
-                Index = 1,
-                Description = "List Repo Users",
-                Action = new Action(ListRepoUsers)
-            });
-            list.Add(new OptionItem
-            {
-                Index = 2,
-                Description = "List Branches",
-                Action = new Action(ListRepoBranches)
-            });
-            list.Add(GetResetItem(3));
-            list.Add(GetExitOption(4));
-            return list;
+                new OptionItem(1, "List Repo Users", new Action(ListRepoUsers)),
+                new OptionItem(2, "List Branches", new Action(ListRepoBranches)),
+                new OptionItem(3, "List Issues", new Action(ListRepoIssues)),
+                GetResetItem(4),
+                GetExitOption(5)
+            };
         }
 
         public List<OptionItem> PopulateOrganizationOptions()
         {
-            var list = new List<OptionItem>();
-            list.Add(new OptionItem(1, "List Repos", new Action(ListOrganizationRepos)));
-            list.Add(GetResetItem(3));
-            list.Add(GetExitOption(4));
-            return list;
+            return new List<OptionItem>
+            {
+                new OptionItem(1, "List Repos", new Action(ListOrganizationRepos)),
+                GetResetItem(3),
+                GetExitOption(4)
+            };
+        }
+
+        public List<OptionItem> PopulateIssueOptions()
+        {
+            return new List<OptionItem>
+            {
+                new OptionItem(1, "Edit Issue", new Action(ListOrganizationRepos)),
+                new OptionItem(2, "Add Comment", new Action(AddIssueComment)),
+                GetResetItem(3),
+                GetExitOption(4)
+            };
         }
 
         #endregion

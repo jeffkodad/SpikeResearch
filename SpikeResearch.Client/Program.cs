@@ -28,26 +28,34 @@ namespace SpikeResearch.Client
 
         public Program()
         {
-            PrintHeading("Spike Research");
-
-            Console.WriteLine("1. GitHub");
-            Console.WriteLine("2. Google Docs");
-            Console.WriteLine("3: Exit");
-
-            switch (GetNumberInput(3))
+            try
             {
-                case "1":
-                    GitHub();
-                    break;
-                case "2":
-                    GoogleDocs();
-                    break;
-                case "3":
-                    Environment.Exit(0);
-                    break;
-                default:
+                PrintHeading("Spike Research");
 
-                    break;
+                Console.WriteLine("1. GitHub");
+                Console.WriteLine("2. Google Docs");
+                Console.WriteLine("3: Exit");
+
+                switch (GetNumberInput(3))
+                {
+                    case "1":
+                        GitHub();
+                        break;
+                    case "2":
+                        GoogleDocs();
+                        break;
+                    case "3":
+                        Environment.Exit(0);
+                        break;
+                    default:
+
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                DisplayMessageAndWait("Press any Key to exit", new Action(CloseAppNow));
             }
 
             ExitApp();
