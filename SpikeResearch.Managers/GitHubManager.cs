@@ -4,6 +4,7 @@ using SpikeResearch.Contracts.Managers;
 using SpikeResearch.Utilities;
 using SpikeResearch.DataContracts;
 using System.Collections.Generic;
+using System.Net.Http;
 
 namespace SpikeResearch.Managers
 {
@@ -48,7 +49,7 @@ namespace SpikeResearch.Managers
 
         #region UserMethods
 
-        public bool AuthenticateUser(string userName, string password)
+        public GitHubUser AuthenticateUser(string userName, string password)
         {
             return GitHubUserAccessor.AuthenticateUser(userName, password);
         }
@@ -97,9 +98,9 @@ namespace SpikeResearch.Managers
             return GitHubAccessor.GetOrganizationByName(organizationName);
         }
 
-        public List<Dictionary<string, object>> OneTimeCall(string path, Dictionary<string, string> paramaters)
+        public List<Dictionary<string, object>> OneTimeCall(HttpMethod method, bool auth, string path, Dictionary<string, string> paramaters)
         {
-            return GitHubAccessor.OneTimeCall(path, paramaters);
+            return GitHubAccessor.OneTimeCall(method, auth, path, paramaters);
         }
 
 

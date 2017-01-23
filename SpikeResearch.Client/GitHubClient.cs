@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Policy;
 using System.Text;
@@ -225,15 +226,42 @@ namespace SpikeResearch.Client
         {
             PrintHeading("Custom GitHub Call");
 
-            Console.WriteLine("Enter a path for the gitHub call");
+            Console.WriteLine("Enter the call method (get, post, patch)");
+            var methodInput = Console.ReadLine();
+            HttpMethod method;
+            switch (methodInput.ToLower())
+            {
+                case "get":
+                default:
+                    method = HttpMethod.Get;
+                    break;
+                case "post":
+                    method = HttpMethod.Post;
+                    break;
+                case "patch":
+                    method = new HttpMethod("PATCH");
+                    break;
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Does this call require authentication? (y/n)");
+            var authInput = Console.ReadLine();
+            bool auth = !string.IsNullOrEmpty(authInput) && authInput.ToLower() == "y";
+
+            Console.WriteLine();
+            Console.WriteLine("Enter a path for the call");
             var path = Console.ReadLine();
             Console.WriteLine();
-            Console.WriteLine("Enter your paramaters {\"Name\":\"Value\",\"Name\":\"Value\"}, press escape when finished");
+            Console.WriteLine("Enter your paramaters {\"Name\":\"Value\",\"Name\":\"Value\"}");
             var paramInput = Console.ReadLine();
-            var paramaters = JsonConvert.DeserializeObject<Dictionary<string, string>>(paramInput);
-
+            var paramaters = !string.IsNullOrEmpty(paramInput) ? JsonConvert.DeserializeObject<Dictionary<string, string>>(paramInput) : EmptyParams;
+            
+            var text = GitHubManager.OneTimeCall(method, auth, path, paramaters);
+            
             Console.Clear();
             PrintHeading("Custom Call Results");
+            Console.WriteLine($"HttpMethod.{method}");
+            Console.WriteLine($"Authentication: {auth}");
             Console.WriteLine($"Path: {path}");
             if (!string.IsNullOrEmpty(paramInput) && paramaters.Count > 0)
             {
@@ -244,8 +272,6 @@ namespace SpikeResearch.Client
                 }
             }
             PrintHeading("Results");
-
-            var text = GitHubManager.OneTimeCall(path, EmptyParams);
 
             foreach (var item in text)
             {
@@ -279,7 +305,18 @@ namespace SpikeResearch.Client
             // Stops Receving Keys Once Enter is Pressed
             while (key.Key != ConsoleKey.Enter);
 
-            var auth = GitHubUserManager.AuthenticateUser(userName, pass);
+            var authUser = GitHubUserManager.AuthenticateUser(userName, pass);
+
+            if (authUser.Id != null)
+            {
+                Authenticated = true;
+                CurrentUser = authUser;
+                DisplayMessageAndWait("Authentication successful, press any key for user options", DisplayUserOptions);
+            }
+            else
+            {
+                DisplayMessageAndWait("User not found, press any key to continue", DisplayGitHubOptions);
+            }
 
         }
 

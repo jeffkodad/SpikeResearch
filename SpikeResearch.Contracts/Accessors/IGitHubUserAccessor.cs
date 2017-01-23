@@ -1,7 +1,9 @@
-﻿namespace SpikeResearch.Contracts.Accessors
+﻿using SpikeResearch.DataContracts;
+
+namespace SpikeResearch.Contracts.Accessors
 {
     public interface IGitHubUserAccessor
     {
-        bool AuthenticateUser(string userName, string password);
+        GitHubUser AuthenticateUser(string userName, string password);
     }
 }

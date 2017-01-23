@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net.Http;
 using SpikeResearch.DataContracts;
 
 namespace SpikeResearch.Contracts.Accessors
@@ -17,6 +18,6 @@ namespace SpikeResearch.Contracts.Accessors
 
         GitHubOrganization GetOrganizationByName(string organizationName);
 
-        List<Dictionary<string, object>> OneTimeCall(string path, Dictionary<string, string> paramaters);
+        List<Dictionary<string, object>> OneTimeCall(HttpMethod method, bool auth, string path, Dictionary<string, string> paramaters);
     }
 }

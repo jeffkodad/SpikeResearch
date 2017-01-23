@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using SpikeResearch.Contracts.Accessors;
 using SpikeResearch.DataContracts;
 using System.Collections;
+using System.Text;
 
 namespace SpikeResearch.Accessors
 {
@@ -20,6 +21,8 @@ namespace SpikeResearch.Accessors
 
         private HttpClient _httpClient;
 
+        private bool _authenticated;
+
         #endregion
 
         #region Properties
@@ -30,15 +33,32 @@ namespace SpikeResearch.Accessors
             set { _httpClient = value; }
         }
 
+        public bool Authenticated
+        {
+            get { return _authenticated; }
+            set { _authenticated = value; }
+        }
+
         #endregion
 
         #region Methods
 
         #region UserAccessorMethods
 
-        public bool AuthenticateUser(string userName, string password)
+        public GitHubUser AuthenticateUser(string userName, string password)
         {
-            return true;
+            var request = CreateNewRequest(HttpMethod.Get, "user", new Dictionary<string, string>());
+            Console.WriteLine("Test");
+            var testread = Console.ReadLine();
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(String.Format("{0}:{1}", userName, password))));
+            var gitUser = ProcessRequest<GitHubUser>(request);
+
+            if (gitUser.Id != null)
+            {
+                Authenticated = true;
+            }
+
+            return gitUser;
         }
 
         #endregion
@@ -114,9 +134,14 @@ namespace SpikeResearch.Accessors
             return ProcessRequest<GitHubOrganization>(request);
         }
 
-        public List<Dictionary<string, object>> OneTimeCall(string path, Dictionary<string, string> paramaters)
+        public List<Dictionary<string, object>> OneTimeCall(HttpMethod method, bool auth, string path, Dictionary<string, string> paramaters)
         {
-            var request = CreateNewRequest(HttpMethod.Get, path, paramaters);
+            var request = CreateNewRequest(method, path, paramaters);
+
+            if (auth)
+            {
+                request.Headers.Authorization = AddAuthentication();
+            }
 
             var resp = GitHubClient.SendAsync(request).Result;
             var content = resp.Content.ReadAsStringAsync().Result;
@@ -175,7 +200,29 @@ namespace SpikeResearch.Accessors
             return JsonConvert.DeserializeObject<T>(content);
         }
 
+        private AuthenticationHeaderValue AddAuthentication()
+        {
+            Console.WriteLine("Authentication Required");
+            Console.WriteLine("Enter username");
+            var userName = Console.ReadLine();
+            Console.WriteLine();
+            Console.WriteLine("\nEnter Password");
+            var pass = "";
+            ConsoleKeyInfo key;
+            do
+            {
+                key = Console.ReadKey(true);
 
+                if (key.Key != ConsoleKey.Enter && key.Key != ConsoleKey.Backspace)
+                {
+                    pass += key.KeyChar;
+                }
+            }
+            // Stops Receving Keys Once Enter is Pressed
+            while (key.Key != ConsoleKey.Enter);
+
+            return new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{pass}")));
+        }
 
         #endregion
 
